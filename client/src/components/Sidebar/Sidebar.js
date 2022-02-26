@@ -27,6 +27,15 @@ const Sidebar = ({
 }) => {
   const classes = useStyles();
 
+  // Sorting the Conversation Chats in Ascending Order
+  conversations.sort(function (a, b) {
+    const convoA = new Date(a.messages[a.messages.length -1].createdAt);
+    const convoB = new Date(b.messages[b.messages.length -1].createdAt);
+    if (convoA > convoB) return -1;
+    else if (convoA.createdAt < convoB.createdAt) return 1;
+    else return 0;
+  });
+
   return (
     <Box className={classes.root}>
       <CurrentUser user={user} />

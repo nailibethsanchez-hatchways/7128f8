@@ -80,14 +80,16 @@ const Home = ({ user, logout }) => {
 
   const addNewConvo = useCallback(
     (recipientId, message) => {
-      setConversations(prev => {
-        const convIdx = prev.findIndex((c) => c.otherUser.id === recipientId);
-        const convCopy = [...conversations];
-        convCopy[convIdx].messages.push(message);
-        convCopy[convIdx].latestMessageText = message.text;
-        convCopy[convIdx].id = message.conversationId;
-        return convCopy;
+      // Deep clone of conversations array
+      const conversationsCopy = JSON.parse(JSON.stringify(conversations));
+      conversationsCopy.forEach((convo) => {
+        if (convo.otherUser.id === recipientId) {
+          convo.messages.push(message);
+          convo.latestMessageText = message.text;
+          convo.id = message.conversationId;
+        }
       });
+      setConversations(conversationsCopy);
     },
     [setConversations, conversations]
   );
@@ -95,13 +97,15 @@ const Home = ({ user, logout }) => {
   const addMessageToConversation = useCallback(
     (data) => {
       const { message } = data;
-      setConversations((prev) => {
-        const convIdx = prev.findIndex((c) => c.id === message.conversationId);
-        const convCopy = [...conversations];
-        convCopy[convIdx].messages.push(message);
-        convCopy[convIdx].latestMessageText = message.text;
-        return convCopy;
+      // Deep clone of conversations array
+      const conversationsCopy = JSON.parse(JSON.stringify(conversations));
+      conversationsCopy.forEach((convo) => {
+        if (convo.id === message.conversationId) {
+          convo.messages.push(message);
+          convo.latestMessageText = message.text;
+        }
       });
+      setConversations(conversationsCopy);
     },
     [setConversations, conversations]
   );
