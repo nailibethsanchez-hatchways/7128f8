@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box } from '@material-ui/core';
 import { BadgeAvatar, ChatContent } from '../Sidebar';
 import { makeStyles } from '@material-ui/core/styles';
+import SeenBadge from './SeenBadge';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -19,11 +20,23 @@ const useStyles = makeStyles((theme) => ({
 
 const Chat = ({ conversation, setActiveChat }) => {
   const classes = useStyles();
+
+  const [isSeen, setIsSeen] = useState(true);
+
   const { otherUser } = conversation;
 
   const handleClick = async (conversation) => {
     await setActiveChat(conversation.otherUser.username);
   };
+
+  const { messages } = conversation;
+  console.log(messages)
+  const messagesToSee = messages.filter((m) => {
+    return m.isSeen === false;
+  }).length;
+  if (messagesToSee > 0) {
+    setIsSeen(false);
+  }
 
   return (
     <Box onClick={() => handleClick(conversation)} className={classes.root}>
@@ -34,6 +47,7 @@ const Chat = ({ conversation, setActiveChat }) => {
         sidebar={true}
       />
       <ChatContent conversation={conversation} />
+      <SeenBadge isSeen={isSeen} messagesToSee={messagesToSee} />
     </Box>
   );
 };
