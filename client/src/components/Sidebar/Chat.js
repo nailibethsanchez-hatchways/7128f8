@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box } from '@material-ui/core';
 import { BadgeAvatar, ChatContent } from '../Sidebar';
 import { makeStyles } from '@material-ui/core/styles';
@@ -30,13 +30,15 @@ const Chat = ({ conversation, setActiveChat }) => {
   };
 
   const { messages } = conversation;
-  console.log(messages)
   const messagesToSee = messages.filter((m) => {
     return m.isSeen === false;
   }).length;
-  if (messagesToSee > 0) {
-    setIsSeen(false);
-  }
+
+  useEffect(() => {
+    if (messagesToSee > 0) {
+      setIsSeen(false);
+    }
+  }, [messages, messagesToSee]);
 
   return (
     <Box onClick={() => handleClick(conversation)} className={classes.root}>
@@ -46,7 +48,7 @@ const Chat = ({ conversation, setActiveChat }) => {
         online={otherUser.online}
         sidebar={true}
       />
-      <ChatContent conversation={conversation} />
+      <ChatContent conversation={conversation} isSeen={isSeen} />
       <SeenBadge isSeen={isSeen} messagesToSee={messagesToSee} />
     </Box>
   );

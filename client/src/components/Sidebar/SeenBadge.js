@@ -25,6 +25,7 @@ const useStyles = makeStyles(() => ({
 
 const SeenBadge = ({ messagesToSee, isSeen }) => {
   const classes = useStyles();
+
   return (
     <div className={!isSeen ? classes.root : classes.hidden}>
       <p>{messagesToSee}</p>
