@@ -81,7 +81,7 @@ const Chat = ({
         online={otherUser.online}
         sidebar={true}
       />
-      <ChatContent conversation={conversation} />
+      <ChatContent conversation={conversation} isSeen={conversationMessageSeen} />
       <SeenBadge
         isSeen={conversationMessageSeen}
         messagesToSee={messagesToSee}

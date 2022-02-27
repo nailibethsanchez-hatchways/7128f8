@@ -20,10 +20,11 @@ const useStyles = makeStyles((theme) => ({
   },
   active: {
     fontWeight: 'bold',
+    color: 'black',
   },
 }));
 
-const ChatContent = ({ conversation }) => {
+const ChatContent = ({ conversation, isSeen }) => {
   const classes = useStyles();
 
   const { otherUser } = conversation;
@@ -35,7 +36,7 @@ const ChatContent = ({ conversation }) => {
         <Typography className={classes.username}>
           {otherUser.username}
         </Typography>
-        <Typography className={classes.previewText}>
+        <Typography className={`${classes.previewText} ${!isSeen ? classes.active : ''}`}>
           {latestMessageText}
         </Typography>
       </Box>
