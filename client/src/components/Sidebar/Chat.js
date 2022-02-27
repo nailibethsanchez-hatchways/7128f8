@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Box } from '@material-ui/core';
 import { BadgeAvatar, ChatContent } from '../Sidebar';
 import { makeStyles } from '@material-ui/core/styles';
 import SeenBadge from './SeenBadge';
+import axios from 'axios';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -18,27 +19,59 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Chat = ({ conversation, setActiveChat }) => {
+const Chat = ({
+  conversation,
+  setActiveChat,
+  activeConversation,
+  setConversations,
+}) => {
   const classes = useStyles();
 
-  const [isSeen, setIsSeen] = useState(true);
+  const { otherUser, messages } = conversation;
 
-  const { otherUser } = conversation;
+  const messagesToSee = messages.filter((m) => {
+      return !m.isSeen && otherUser.id === m.senderId;
+  }).length;
+
+  const conversationMessageSeen = messagesToSee === 0;
 
   const handleClick = async (conversation) => {
     await setActiveChat(conversation.otherUser.username);
   };
 
-  const { messages } = conversation;
-  const messagesToSee = messages.filter((m) => {
-    return m.isSeen === false;
-  }).length;
-
   useEffect(() => {
-    if (messagesToSee > 0) {
-      setIsSeen(false);
-    }
-  }, [messages, messagesToSee]);
+    const readMessages = async () => {
+      if (
+        activeConversation === conversation.otherUser.username &&
+        messagesToSee > 0
+      ) {
+        try {
+          setConversations((prev) => {
+            const allConversations = [...prev];
+            allConversations.forEach((convo, idx) => {
+              if (convo.id === conversation.id) {
+                const convoCopy = { ...convo };
+                const messagesCopy = convoCopy.messages.map((m) => {
+                  return { ...m, isSeen: true };
+                });
+                convoCopy.messages = messagesCopy;
+                allConversations[idx] = convoCopy;
+              }
+            });
+            return allConversations;
+          });
+          await axios.put('/api/messages', {
+            read: true,
+            otherUserId: otherUser.id,
+            conversationId: conversation.id,
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    };
+    readMessages();
+  }, [activeConversation, conversation, otherUser, messagesToSee, setConversations]);
 
   return (
     <Box onClick={() => handleClick(conversation)} className={classes.root}>
@@ -48,8 +81,11 @@ const Chat = ({ conversation, setActiveChat }) => {
         online={otherUser.online}
         sidebar={true}
       />
-      <ChatContent conversation={conversation} isSeen={isSeen} />
-      <SeenBadge isSeen={isSeen} messagesToSee={messagesToSee} />
+      <ChatContent conversation={conversation} />
+      <SeenBadge
+        isSeen={conversationMessageSeen}
+        messagesToSee={messagesToSee}
+      />
     </Box>
   );
 };
