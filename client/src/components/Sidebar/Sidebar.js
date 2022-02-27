@@ -27,8 +27,6 @@ const Sidebar = ({
 }) => {
   const classes = useStyles();
 
-  // Sorting the Conversation Chats in Ascending Order
-
   const sortedConversation = [...conversations]
   const isSearching = conversations.find(el =>  el.id === undefined)
 
