@@ -27,12 +27,25 @@ const Sidebar = ({
 }) => {
   const classes = useStyles();
 
+  const sortedConversation = [...conversations]
+  const isSearching = conversations.find(el =>  el.id === undefined)
+
+  if (conversations.length > 0 && !isSearching) {
+    sortedConversation.sort(function (a, b) {
+      const convoA = new Date(a.messages[a.messages.length - 1].createdAt);
+      const convoB = new Date(b.messages[b.messages.length - 1].createdAt);
+      if (convoA > convoB) return -1;
+      else if (convoA.createdAt < convoB.createdAt) return 1;
+      else return 0;
+    });
+  }
+
   return (
     <Box className={classes.root}>
       <CurrentUser user={user} />
       <Typography className={classes.title}>Chats</Typography>
       <Search handleChange={handleChange} />
-      {conversations
+      {sortedConversation
         .filter((conversation) =>
           conversation.otherUser.username.includes(searchTerm)
         )

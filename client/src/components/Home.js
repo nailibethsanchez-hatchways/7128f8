@@ -62,9 +62,9 @@ const Home = ({ user, logout }) => {
     });
   };
 
-  const postMessage = (body) => {
+  const postMessage = async (body) => {
     try {
-      const data = saveMessage(body);
+      const data = await saveMessage(body);
 
       if (!body.conversationId) {
         addNewConvo(body.recipientId, data.message);
@@ -80,39 +80,40 @@ const Home = ({ user, logout }) => {
 
   const addNewConvo = useCallback(
     (recipientId, message) => {
-      conversations.forEach((convo) => {
+      const conversationsCopy = [...conversations];
+      conversationsCopy.forEach((convo, idx) => {
         if (convo.otherUser.id === recipientId) {
-          convo.messages.push(message);
-          convo.latestMessageText = message.text;
-          convo.id = message.conversationId;
+          const convoCopy = { ...convo };
+          const messagesCopy = [...convoCopy.messages];
+          messagesCopy.push(message);
+          convoCopy.messages = messagesCopy;
+          convoCopy.latestMessageText = message.text;
+          convoCopy.id = message.conversationId;
+          conversationsCopy[idx] = convoCopy;
         }
       });
-      setConversations(conversations);
+      setConversations(conversationsCopy);
     },
     [setConversations, conversations]
   );
 
   const addMessageToConversation = useCallback(
     (data) => {
-      // if sender isn't null, that means the message needs to be put in a brand new convo
-      const { message, sender = null } = data;
-      if (sender !== null) {
-        const newConvo = {
-          id: message.conversationId,
-          otherUser: sender,
-          messages: [message],
-        };
-        newConvo.latestMessageText = message.text;
-        setConversations((prev) => [newConvo, ...prev]);
-      }
+      const { message } = data;
 
-      conversations.forEach((convo) => {
+      const conversationsCopy = [...conversations];
+      conversationsCopy.forEach((convo, idx) => {
         if (convo.id === message.conversationId) {
-          convo.messages.push(message);
-          convo.latestMessageText = message.text;
+          const convoCopy = { ...convo };
+          const messagesCopy = [...convoCopy.messages];
+          messagesCopy.push(message);
+          convoCopy.messages = messagesCopy;
+          convoCopy.messages = messagesCopy;
+          convoCopy.latestMessageText = message.text;
+          conversationsCopy[idx] = convoCopy;
         }
       });
-      setConversations(conversations);
+      setConversations(conversationsCopy);
     },
     [setConversations, conversations]
   );
