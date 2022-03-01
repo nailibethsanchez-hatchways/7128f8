@@ -37,7 +37,7 @@ const Home = ({ user, logout }) => {
     users.forEach((user) => {
       // only create a fake convo if we don't already have a convo with this user
       if (!currentUsers[user.id]) {
-        let fakeConvo = { otherUser: user, messages: [] };
+        let fakeConvo = { otherUser: user, messages: [], totalUnreadMessages: 0 };
         newState.push(fakeConvo);
       }
     });
@@ -108,8 +108,26 @@ const Home = ({ user, logout }) => {
           const messagesCopy = [...convoCopy.messages];
           messagesCopy.push(message);
           convoCopy.messages = messagesCopy;
-          convoCopy.messages = messagesCopy;
           convoCopy.latestMessageText = message.text;
+          convoCopy.totalUnreadMessages += 1;
+          conversationsCopy[idx] = convoCopy;
+        }
+      });
+      setConversations(conversationsCopy);
+    },
+    [setConversations, conversations]
+  );
+
+  const readMessagesInConversation = useCallback(
+    (data) => {
+      const { conversationId } = data;
+
+      const conversationsCopy = [...conversations];
+      conversationsCopy.forEach((convo, idx) => {
+        if (convo.id === conversationId) {
+          const convoCopy = { ...convo };
+          const lastMessage =  {  ...convoCopy.messages[convoCopy.messages.length - 1], isSeen: true }
+          convoCopy.lastReadMessage = lastMessage;
           conversationsCopy[idx] = convoCopy;
         }
       });
@@ -157,6 +175,7 @@ const Home = ({ user, logout }) => {
     socket.on('add-online-user', addOnlineUser);
     socket.on('remove-offline-user', removeOfflineUser);
     socket.on('new-message', addMessageToConversation);
+    socket.on('read-message', readMessagesInConversation);
 
     return () => {
       // before the component is destroyed
@@ -164,8 +183,9 @@ const Home = ({ user, logout }) => {
       socket.off('add-online-user', addOnlineUser);
       socket.off('remove-offline-user', removeOfflineUser);
       socket.off('new-message', addMessageToConversation);
+      socket.off('read-message', readMessagesInConversation);
     };
-  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, socket]);
+  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, readMessagesInConversation, socket]);
 
   useEffect(() => {
     // when fetching, prevent redirect

@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
-import { Box } from '@material-ui/core';
+import React, { useEffect, useContext } from 'react';
+import { Box, Badge } from '@material-ui/core';
 import { BadgeAvatar, ChatContent } from '../Sidebar';
 import { makeStyles } from '@material-ui/core/styles';
-import SeenBadge from './SeenBadge';
 import axios from 'axios';
+import { SocketContext } from '../../context/socket';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -17,6 +17,11 @@ const useStyles = makeStyles((theme) => ({
       cursor: 'grab',
     },
   },
+  customBadge: {
+    backgroundColor: '#3F92FF',
+    color: 'white',
+    right: 30,
+  },
 }));
 
 const Chat = ({
@@ -27,23 +32,29 @@ const Chat = ({
 }) => {
   const classes = useStyles();
 
-  const { otherUser, messages } = conversation;
+  const socket = useContext(SocketContext);
 
-  const messagesToSee = messages.filter((m) => {
-      return !m.isSeen && otherUser.id === m.senderId;
-  }).length;
+  const { otherUser, totalUnreadMessages } = conversation;
 
-  const conversationMessageSeen = messagesToSee === 0;
+  const conversationMessageSeen = totalUnreadMessages === 0;
 
   const handleClick = async (conversation) => {
     await setActiveChat(conversation.otherUser.username);
   };
 
   useEffect(() => {
+    if (activeConversation === otherUser.username && conversation.messages[conversation.messages.length - 1]?.senderId === otherUser.id) {
+      socket.emit('read-message', {
+        conversationId: conversation.id,
+      });
+    }
+  }, [activeConversation, otherUser, socket, conversation])
+
+  useEffect(() => {
     const readMessages = async () => {
       if (
-        activeConversation === conversation.otherUser.username &&
-        messagesToSee > 0
+        activeConversation === otherUser.username &&
+        totalUnreadMessages > 0
       ) {
         try {
           setConversations((prev) => {
@@ -55,6 +66,7 @@ const Chat = ({
                   return { ...m, isSeen: true };
                 });
                 convoCopy.messages = messagesCopy;
+                convoCopy.totalUnreadMessages = 0;
                 allConversations[idx] = convoCopy;
               }
             });
@@ -71,7 +83,14 @@ const Chat = ({
       }
     };
     readMessages();
-  }, [activeConversation, conversation, otherUser, messagesToSee, setConversations]);
+  }, [
+    activeConversation,
+    conversation,
+    otherUser,
+    totalUnreadMessages,
+    setConversations,
+    socket,
+  ]);
 
   return (
     <Box onClick={() => handleClick(conversation)} className={classes.root}>
@@ -81,11 +100,14 @@ const Chat = ({
         online={otherUser.online}
         sidebar={true}
       />
-      <ChatContent conversation={conversation} isSeen={conversationMessageSeen} />
-      <SeenBadge
+      <ChatContent
+        conversation={conversation}
         isSeen={conversationMessageSeen}
-        messagesToSee={messagesToSee}
       />
+      <Badge
+        classes={{ badge: classes.customBadge }}
+        badgeContent={totalUnreadMessages}
+      ></Badge>
     </Box>
   );
 };

@@ -44,12 +44,33 @@ router.post("/", async (req, res, next) => {
 });
 
 router.put("/", async (req, res, next) => {
+  if (!req.user) {
+    return res.sendStatus(401);
+  }
+
+  const otherUserId = req.body.otherUserId;
+  const conversationId = req.body.conversationId;
+  const senderId = req.user.id;
+
+  const conversation = await Conversation.findConversation(
+    senderId,
+    otherUserId
+  );
+
+  if (!conversation) {
+    return res.sendStatus(403);
+  }
+
   if ((req.body.read = true)) {
-    const otherUserId = req.body.otherUserId;
-    const conversationId = req.body.conversationId;
-    const messages = await Message.update(
+    await Message.update(
       { isSeen: true },
-      { where: { isSeen: false, senderId: otherUserId, conversationId: conversationId} }
+      {
+        where: {
+          isSeen: false,
+          senderId: otherUserId,
+          conversationId: conversationId,
+        },
+      }
     );
   }
 });
