@@ -43,12 +43,16 @@ const Chat = ({
   };
 
   useEffect(() => {
-    if (activeConversation === otherUser.username && conversation.messages[conversation.messages.length - 1]?.senderId === otherUser.id) {
+    if (
+      activeConversation === otherUser.username &&
+      conversation.messages[conversation.messages.length - 1]?.senderId ===
+        otherUser.id
+    ) {
       socket.emit('read-message', {
         conversationId: conversation.id,
       });
     }
-  }, [activeConversation, otherUser, socket, conversation])
+  }, [activeConversation, otherUser, socket, conversation]);
 
   useEffect(() => {
     const readMessages = async () => {
@@ -107,7 +111,7 @@ const Chat = ({
       <Badge
         classes={{ badge: classes.customBadge }}
         badgeContent={totalUnreadMessages}
-      ></Badge>
+      />
     </Box>
   );
 };
